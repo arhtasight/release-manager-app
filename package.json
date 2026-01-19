@@ -1,0 +1,43 @@
+{
+  "name": "release-manager-github-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A Probot app to manage release end to end flow by recipe configurations.",
+  "author": "Raj",
+  "license": "MIT",
+  "keywords": [
+    "release",
+    "manager",
+    "release-manager",
+    "probot",
+    "github",
+    "probot-app"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "probot run ./build/index.js",
+    "test": "vitest",
+    "dev": "nodemon --watch src --exec npm start"
+  },
+  "dependencies": {
+    "mustache": "^4.2.0",
+    "probot": "^14.0.6"
+  },
+  "devDependencies": {
+    "@types/mustache": "^4.2.6",
+    "@types/node": "^24.3.1",
+    "ioredis": "^5.8.0",
+    "nock": "^14.0.10",
+    "nodemon": "^3.1.10",
+    "smee-client": "^4.3.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "@types/pg": "8.15.5"
+  },
+  "engines": {
+    "node": ">= 24"
+  },
+  "type": "module"
+}
