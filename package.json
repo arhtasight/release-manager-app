@@ -1,6 +1,6 @@
 {
   "name": "release-manager-github-app",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "A Probot app to manage release end to end flow by recipe configurations.",
   "author": "Raj",
