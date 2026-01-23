@@ -10,6 +10,8 @@ export default (app: Probot) => {
     });
     await context.octokit.rest.issues.createComment(issueComment);
     context.log.info(`Created thank you comment for issue #${context.payload.issue.number}`);
+    diagnoseGraphQlMutation(context);
+
     await addProjectItem(context, { projectnumber: projectNumber, itemTitle: context.payload.issue.title, itemBody: context.payload.issue.body });
     context.log.info(`handled addition of issue #${context.payload.issue.number} for title: ${context.payload.issue.title}`);
   });
@@ -44,7 +46,11 @@ const addProjectItem = async (context: Context, data: { projectnumber: number; i
   const addProjectItemQueryVariables = {
     projectId: projectId,
     title: data.itemTitle,
-    body: data.itemBody || ""
+    body: data.itemBody || "",
+    headers: {
+      "X-GitHub-Api-Version": "2022-11-28",
+      "GraphQL-Features": "projects_next_graphql"
+    }
   };
 
   const response: any = await context.octokit.graphql(addProjectItemQuery, addProjectItemQueryVariables);
@@ -75,4 +81,19 @@ const getProjectId = async (context: Context, projectNumber: number): Promise<st
   context.log.info(`Fetching project ID for project number ${projectNumber} under owner ${owner}`);
   const response: any = await context.octokit.graphql(getProjectsQuery, variables);
   return response?.organization?.projectV2?.id;
+};
+
+const diagnoseGraphQlMutation = async (context: Context): Promise<void> => {
+  const query = `
+          query {
+          __type(name: "Mutation") {
+            fields {
+              name
+            }
+          }
+        }
+      `;
+
+  const response: any = await context.octokit.graphql(query);
+  context.log.info("GraphQL Mutation Fields:", response);
 };
