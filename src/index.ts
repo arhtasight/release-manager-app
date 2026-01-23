@@ -60,9 +60,9 @@ const getProjectId = async (context: Context, projectNumber: number): Promise<st
   assert.ok(owner, "Owner information is required in the payload");
 
   const getProjectsQuery = `
-      query GetOrgProjectId {
-        organization(login: "YOUR_ORG_NAME") {
-          projectV2(number: 3) {
+      query GetOrgProjectId($owner: String!, $projectNumber: Int!) {
+        organization(login: $owner) {
+          projectV2(number: $projectNumber) {
             id
           }
         }
