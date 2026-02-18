@@ -28,16 +28,17 @@ const addProjectItem = async (context: Context, data: { projectnumber: number; i
   assert.ok(data.itemTitle, "Item title is required");
 
   const addProjectItemQuery = `
-        mutation 
-          AddIssueToProject($projectId: ID!, $title: String!, $body: String!) {
-            addProjectV2DraftItem(input: {
-              projectId: $projectId,
-              title: $title
-              body: $body
-            }) {
-              projectItem { id }
+        mutation AddIssueToProject($projectId: ID!, $title: String!, $body: String!) {
+          addProjectV2DraftIssue(input: {
+            projectId: $projectId
+            title: $title
+            body: $body
+          }) {
+            projectItem {
+              id
             }
           }
+        }
     `;
 
   const projectId = await getProjectId(context, data.projectnumber);
@@ -46,15 +47,11 @@ const addProjectItem = async (context: Context, data: { projectnumber: number; i
   const addProjectItemQueryVariables = {
     projectId: projectId,
     title: data.itemTitle,
-    body: data.itemBody || "",
-    headers: {
-      "X-GitHub-Api-Version": "2022-11-28",
-      "GraphQL-Features": "projects_next_graphql"
-    }
+    body: data.itemBody || ""
   };
 
   const response: any = await context.octokit.graphql(addProjectItemQuery, addProjectItemQueryVariables);
-  const itemId = response?.addProjectV2DraftItem?.projectItem?.id;
+  const itemId = response?.addProjectV2DraftIssue?.projectItem?.id;
   context.log.info(`Added item [id=${itemId}] to project ${data.projectnumber} with title: ${data.itemTitle}`);
   assert.ok(itemId, "Failed to add item to project");
   return itemId;
@@ -95,5 +92,5 @@ const diagnoseGraphQlMutation = async (context: Context): Promise<void> => {
       `;
 
   const response: any = await context.octokit.graphql(query);
-  context.log.info("GraphQL Mutation Fields:", response);
+  context.log.info("GraphQL Mutation Fields: " + response);
 };
