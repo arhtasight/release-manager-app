@@ -11,7 +11,7 @@ export const handleIssueOpened = async (context: IssueOpenedContext): Promise<vo
   diagnoseUtils.graphQlMutation(context);
 
   let draftItemBody = context.payload.issue.body || "";
-  draftItemBody += `\n\n---\n\n*There is related issue #${issueNumber} to this item. Please check the issue for more details: ${context.payload.issue.url}*`;
+  draftItemBody += `\n\n---\n\n*There is related issue #${issueNumber} to this item. Please check the issue for more details: ${context.payload.issue.html_url}*`;
   const projectItemResponse = await projectService.addProjectItem(context, {
     projectnumber: configUtils.getProjectNumber(),
     itemTitle: context.payload.issue.title,
