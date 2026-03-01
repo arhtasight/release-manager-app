@@ -17,13 +17,19 @@
     "build": "tsc",
     "start": "probot run ./build/index.js",
     "test": "vitest",
-    "dev": "nodemon --watch src --exec npm start"
+    "dev": "nodemon --watch src --exec npm start",
+    "codegen": "dotenv -e .env -- graphql-codegen"
   },
   "dependencies": {
+    "dotenv": "^17.3.1",
     "mustache": "^4.2.0",
     "probot": "^14.0.6"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^6.1.1",
+    "@graphql-codegen/typescript": "^5.0.7",
+    "@graphql-codegen/typescript-operations": "^5.0.7",
+    "@graphql-eslint/eslint-plugin": "^4.4.0",
     "@types/mustache": "^4.2.6",
     "@types/node": "^24.3.1",
     "ioredis": "^5.8.0",
