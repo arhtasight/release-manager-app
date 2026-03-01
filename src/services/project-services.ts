@@ -11,7 +11,7 @@ const addProjectItemQuery = `
             body: $body
           }) {
             projectItem {
-              id
+              fullDatabaseId
             }
           }
         }
@@ -22,7 +22,12 @@ type ProjectItemData = {
   itemTitle: string;
   itemBody: string;
 };
-export const addProjectItem = async (context: Context, data: ProjectItemData): Promise<string | null> => {
+type ProjectItemResponse = {
+  projectUrl: string;
+  itemId: string;
+  itemUrl: string;
+};
+export const addProjectItem = async (context: Context, data: ProjectItemData): Promise<ProjectItemResponse> => {
   assert.ok(data, "Data object is required");
   assert.ok(data.projectnumber, "Project number is required");
   assert.ok(data.itemTitle, "Item title is required");
@@ -38,38 +43,36 @@ export const addProjectItem = async (context: Context, data: ProjectItemData): P
   };
 
   const response: Mutation = await context.octokit.graphql(addProjectItemQuery, addProjectItemQueryVariables);
-  const itemId = response.addProjectV2DraftIssue?.projectItem?.id ?? null;
+  const itemId = response.addProjectV2DraftIssue?.projectItem?.fullDatabaseId ?? null;
   context.log.info(`Added item [id=${itemId}] to project ${data.projectnumber} with title: ${data.itemTitle}`);
   assert.ok(itemId, "Failed to add item to project");
 
-  // Post a comment on the issue with a link to the project (include item node id)
-  try {
-    const projectUrl = project.url || `https://github.com${project.resourcePath || ""}`;
-    const itemLink = itemId ? `${projectUrl}/items/${itemId}` : projectUrl;
-    const projectComment = context.issue({ body: `This issue was added to project: ${itemLink}` });
-    await context.octokit.rest.issues.createComment(projectComment);
-  } catch (err) {
-    context.log.error("Failed to post project link comment", err as any);
-  }
+  const itemLink = getProjectItemUrl(project.url, itemId);
+  const itemResponse: ProjectItemResponse = {
+    projectUrl: project.url,
+    itemId: itemId,
+    itemUrl: itemLink
+  };
+  context.log.info(`Project item URL: ${itemLink}`);
 
-  return itemId;
+  return itemResponse;
 };
 
+const getProjectsQuery = `
+    query GetOrgProjectId($owner: String!, $projectNumber: Int!) {
+      organization(login: $owner) {
+        projectV2(number: $projectNumber) {
+          id
+          url
+          resourcePath
+        }
+      }
+    }
+`;
 export const getProjectId = async (context: IssueOpenedContext, projectNumber: number): Promise<{ id: string; url: string; resourcePath: string }> => {
   const owner = context.payload.organization?.login || context.payload.repository?.owner?.login;
   assert.ok(owner, "Owner information is required in the payload");
 
-  const getProjectsQuery = `
-      query GetOrgProjectId($owner: String!, $projectNumber: Int!) {
-        organization(login: $owner) {
-          projectV2(number: $projectNumber) {
-            id
-            url
-            resourcePath
-          }
-        }
-      }
-  `;
   const variables = {
     owner: owner,
     projectNumber: projectNumber
@@ -81,4 +84,8 @@ export const getProjectId = async (context: IssueOpenedContext, projectNumber: n
     return { ...proj };
   }
   throw new Error(`Project number ${projectNumber} not found for owner ${owner}`);
+};
+
+const getProjectItemUrl = (projectUrl: string, itemId: string): string => {
+  return `${projectUrl}/views/1?pane=issue&itemId=${itemId}`;
 };
