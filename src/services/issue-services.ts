@@ -1,4 +1,3 @@
-import { Milestone } from "src/graphql/generated/schema";
 import { IssueOpenedContext, MilestoneCreatedContext } from "../handlers/types";
 import assert from "assert";
 
