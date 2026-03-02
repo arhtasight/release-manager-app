@@ -22,7 +22,7 @@ type ProjectItemData = {
   itemTitle: string;
   itemBody: string;
 };
-type ProjectItemResponse = {
+export type ProjectItemResponse = {
   projectUrl: string;
   itemId: string;
   itemUrl: string;
