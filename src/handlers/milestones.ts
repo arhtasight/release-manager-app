@@ -10,7 +10,7 @@ export const handleMilestoneCreated = async (context: MilestoneCreatedContext): 
   }
   const projectItemResponse = await projectService.addProjectItem(context, {
     itemTitle: context.payload.milestone.title,
-    itemBody: `Milestone #${context.payload.milestone.number} is created.`,
+    itemBody: `Milestone #${context.payload.milestone.number} is created.\n\nlink to the milestone: ${context.payload.milestone.html_url}`,
     projectnumber: configUtils.getProjectNumber()
   });
   await initializeMilestoneDescription(context, projectItemResponse);
