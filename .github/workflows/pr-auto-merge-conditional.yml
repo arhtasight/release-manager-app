@@ -6,7 +6,7 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened, edited, ready_for_review]
   pull_request_review:
-    types: [submitted]
+    types: [submitted, dismissed]
 
 jobs:
   check-and-merge:
@@ -28,8 +28,16 @@ jobs:
           # Get PR data
           PR_NUMBER=${{ github.event.pull_request.number }}
           BRANCH_NAME=${{ github.event.pull_request.head.ref }}
+          PR_AUTHOR=${{ github.event.pull_request.user.login }}
+          REQUIRED_APPROVER=${{ vars.REQUIRED_APPROVER }}
+
+          if [[ -z "$REQUIRED_APPROVER" ]]; then
+            REQUIRED_APPROVER=${{ github.repository_owner }}
+          fi
 
           echo "PR Branch: $BRANCH_NAME"
+          echo "PR Author: $PR_AUTHOR"
+          echo "Required approver: $REQUIRED_APPROVER"
 
           # Check 1: Valid branch name pattern
           # Allowed: feature/*, bugfix/*, fix/*, docs/*, chore/*, refactor/*
@@ -45,9 +53,16 @@ jobs:
           QUERY='query($owner:String!, $repo:String!, $pr:Int!) {
             repository(owner:$owner, name:$repo) {
               pullRequest(number:$pr) {
-                reviewDecision
                 mergeStateStatus
                 autoMergeRequest { enabledAt }
+                reviews(last: 100) {
+                  nodes {
+                    state
+                    author {
+                      login
+                    }
+                  }
+                }
                 closingIssuesReferences {
                   totalCount
                 }
@@ -62,12 +77,10 @@ jobs:
             -f query="$QUERY")
 
           ISSUE_COUNT=$(echo "$PR_DATA" | jq -r '.data.repository.pullRequest.closingIssuesReferences.totalCount')
-          REVIEW_DECISION=$(echo "$PR_DATA" | jq -r '.data.repository.pullRequest.reviewDecision // "UNKNOWN"')
           MERGE_STATE=$(echo "$PR_DATA" | jq -r '.data.repository.pullRequest.mergeStateStatus // "UNKNOWN"')
           AUTO_MERGE_ENABLED=$(echo "$PR_DATA" | jq -r 'if .data.repository.pullRequest.autoMergeRequest == null then "false" else "true" end')
 
           echo "Issue count: $ISSUE_COUNT"
-          echo "Review decision: $REVIEW_DECISION"
           echo "Merge state: $MERGE_STATE"
           echo "Auto-merge already enabled: $AUTO_MERGE_ENABLED"
 
@@ -81,15 +94,23 @@ jobs:
           fi
           echo "issue_linked=$ISSUE_LINKED" >> $GITHUB_OUTPUT
 
-          # Check 3: Review approved
-          if [[ "$REVIEW_DECISION" == "APPROVED" ]]; then
-            echo "✓ PR is approved"
-            REVIEW_APPROVED=true
+          # Check 3: For non-owner PRs, explicit owner approval is required.
+          if [[ "$PR_AUTHOR" == "$REQUIRED_APPROVER" ]]; then
+            echo "✓ PR authored by required approver; explicit approval not needed"
+            OWNER_APPROVED=true
           else
-            echo "✗ PR is not approved"
-            REVIEW_APPROVED=false
+            OWNER_APPROVED=$(echo "$PR_DATA" | jq -r --arg approver "$REQUIRED_APPROVER" '
+              any(.data.repository.pullRequest.reviews.nodes[]?; .author.login == $approver and .state == "APPROVED")
+            ')
+
+            if [[ "$OWNER_APPROVED" == "true" ]]; then
+              echo "✓ PR approved by required approver @$REQUIRED_APPROVER"
+            else
+              echo "✗ PR not yet approved by required approver @$REQUIRED_APPROVER"
+            fi
           fi
-          echo "review_approved=$REVIEW_APPROVED" >> $GITHUB_OUTPUT
+          echo "owner_approved=$OWNER_APPROVED" >> $GITHUB_OUTPUT
+          echo "required_approver=$REQUIRED_APPROVER" >> $GITHUB_OUTPUT
 
           # Check 4: PR is currently mergeable with required checks passing
           if [[ "$MERGE_STATE" == "CLEAN" ]]; then
@@ -105,7 +126,7 @@ jobs:
 
           # Final eligibility
           # Required checks are enforced by branch protection when auto-merge executes.
-          if [[ $BRANCH_VALID == "true" && $ISSUE_LINKED == "true" && $REVIEW_APPROVED == "true" ]]; then
+          if [[ $BRANCH_VALID == "true" && $ISSUE_LINKED == "true" && $OWNER_APPROVED == "true" ]]; then
             echo "eligible_for_auto_merge=true" >> $GITHUB_OUTPUT
             echo "✓ PR ELIGIBLE FOR AUTO MERGE"
           else
@@ -145,7 +166,7 @@ jobs:
           This PR requires manual review because:
           - Branch name must follow pattern: \`feature/*\`, \`bugfix/*\`, \`fix/*\`, \`docs/*\`, \`chore/*\`, \`refactor/*\`
           - PR must be linked to an issue via closing references
-          - PR must be approved
+          - For PRs not authored by @${{ steps.eligibility.outputs.required_approver }}, approval from @${{ steps.eligibility.outputs.required_approver }} is required
           - Required checks are enforced by branch protection before merge
 
           Current: Branch=\`${{ github.event.pull_request.head.ref }}\`"
