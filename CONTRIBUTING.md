@@ -71,8 +71,8 @@ Auto-merge is enabled when all of the following are true:
 
 - Branch name matches the approved pattern.
 - PR is linked to an issue.
-- If PR author is @rajexcited, no explicit approval is required.
-- If PR author is not @rajexcited, approval from @rajexcited is required.
+- If PR author is owner, no explicit approval is required.
+- If PR author is not owner, approval from owner is required.
 
 The required approver can be configured using repository variable `REQUIRED_APPROVER`. If not set, it defaults to the repository owner.
 
@@ -81,8 +81,6 @@ After auto-merge is enabled, GitHub branch protection still blocks merge until a
 ## Code Owners
 
 Code owners are defined in `.github/CODEOWNERS`:
-
-- `* @rajexcited`
 
 In repository branch rules for `main`, enable `Require review from Code Owners`.
 

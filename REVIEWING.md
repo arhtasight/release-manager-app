@@ -30,7 +30,7 @@ For each PR, verify:
    - test
    - security-scan
 8. PR branch is up to date with main when required.
-9. For PRs authored by someone other than @rajexcited, ensure @rajexcited approval is present before merge.
+9. For PRs authored by someone other than owner, ensure owner approval is present before merge.
 
 ## Workflow and Ruleset Context
 
@@ -38,8 +38,8 @@ Branch rules protect main by requiring status checks and up-to-date branches.
 
 Auto-merge is enabled conditionally by workflow when branch naming and issue-linking criteria are met, and owner approval criteria are satisfied:
 
-- PR authored by @rajexcited: owner approval check is auto-satisfied.
-- PR authored by others: approval from @rajexcited is required.
+- PR authored by owner: owner approval check is auto-satisfied.
+- PR authored by others: approval from owner is required.
 
 Even after auto-merge is enabled, merge does not occur until required checks pass.
 
@@ -61,8 +61,6 @@ Request changes when:
 ## Code Owner Enforcement
 
 Code owner mapping is defined in `.github/CODEOWNERS`.
-
-- `* @rajexcited`
 
 Enable `Require review from Code Owners` on the `main` branch ruleset to enforce owner review policy in GitHub UI.
 
