@@ -17,6 +17,7 @@ jobs:
       pull-requests: write
     env:
       GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
 
     steps:
       - name: Check PR Eligibility
@@ -116,6 +117,7 @@ jobs:
         if: steps.eligibility.outputs.eligible_for_auto_merge == 'true' && steps.eligibility.outputs.auto_merge_enabled != 'true'
         run: |
           gh pr merge ${{ github.event.pull_request.number }} \
+            --repo "$GH_REPO" \
             --auto \
             --squash \
             --delete-branch
@@ -124,6 +126,7 @@ jobs:
         if: steps.eligibility.outputs.eligible_for_auto_merge == 'true'
         run: |
           gh pr comment ${{ github.event.pull_request.number }} \
+            --repo "$GH_REPO" \
             --edit-last \
             --create-if-none \
             --body "✅ **Auto-Merge Enabled**
@@ -134,6 +137,7 @@ jobs:
         if: steps.eligibility.outputs.eligible_for_auto_merge == 'false'
         run: |
           gh pr comment ${{ github.event.pull_request.number }} \
+            --repo "$GH_REPO" \
             --edit-last \
             --create-if-none \
             --body "⚠️ **Manual Review Required**
