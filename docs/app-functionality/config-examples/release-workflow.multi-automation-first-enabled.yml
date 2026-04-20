@@ -1,0 +1,31 @@
+configVersion: 1
+projectBoard:
+  id: 7
+automations:
+  - name: disabled-automation-example
+    enabled: false
+    on: milestone.created
+    when: ${{ true }}
+    tasks:
+      - enabled: true
+        action: milestone.initialize
+        description: "This automation is disabled and will not run"
+
+  - name: first-enabled-automation
+    enabled: true
+    on: milestone.created
+    when: ${{ milestone.number > 0 }}
+    tasks:
+      - enabled: true
+        action: milestone.initialize
+        description: "This is the first enabled automation and will be selected"
+
+  - name: second-enabled-not-selected
+    enabled: true
+    on: milestone.created
+    when: ${{ true }}
+    tasks:
+      - enabled: true
+        action: projectItem.create
+        title: "Not selected with current matching behavior"
+        description: "Current implementation returns first enabled match for trigger"

@@ -1,0 +1,17 @@
+configVersion: 1
+projectBoard:
+  id: 7
+automations:
+  - name: milestone-basic-init
+    enabled: true
+    on: milestone.created
+    when: ${{ milestone.title != "" }}
+    tasks:
+      - enabled: true
+        action: milestone.initialize
+        description: |
+          ## Milestone Summary
+
+          Milestone: ${{milestone.title}}
+          Number: ${{milestone.number}}
+          URL: ${{milestone.html_url}}

@@ -1,0 +1,17 @@
+configVersion: 1
+projectBoard:
+  id: 7
+automations:
+  - name: staged-rollout
+    enabled: true
+    on: milestone.created
+    when: ${{ milestone.number > 0 }}
+    tasks:
+      - enabled: true
+        action: milestone.initialize
+        description: "Milestone initialized for ${{milestone.title}}"
+
+      - enabled: false
+        action: projectItem.create
+        title: "Disabled task placeholder"
+        description: "Enable this task after rollout validation"

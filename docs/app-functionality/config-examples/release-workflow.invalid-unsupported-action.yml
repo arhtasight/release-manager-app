@@ -1,0 +1,13 @@
+configVersion: 1
+projectBoard:
+  id: 7
+automations:
+  - name: invalid-unsupported-action
+    enabled: true
+    on: milestone.created
+    when: ${{ true }}
+    tasks:
+      - enabled: true
+        action: projectItem.delete
+        title: "Unsupported action"
+        description: "This file is intentionally invalid for troubleshooting"

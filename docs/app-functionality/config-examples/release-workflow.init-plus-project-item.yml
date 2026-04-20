@@ -1,0 +1,22 @@
+configVersion: 1
+projectBoard:
+  id: 7
+automations:
+  - name: milestone-init-and-project-item
+    enabled: true
+    on: milestone.created
+    when: ${{ milestone.number > 0 }}
+    tasks:
+      - enabled: true
+        action: milestone.initialize
+        description: |
+          Release planning started for: ${{milestone.title}}
+          Milestone URL: ${{milestone.html_url}}
+
+      - enabled: true
+        action: projectItem.create
+        title: "Release Plan: ${{milestone.title}}"
+        description: |
+          Planning draft created for milestone ${{milestone.title}}.
+          Number: ${{milestone.number}}
+          URL: ${{milestone.html_url}}

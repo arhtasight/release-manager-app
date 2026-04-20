@@ -1,0 +1,18 @@
+configVersion: 1
+projectBoard:
+  id: 7
+automations:
+  - name: only-release-milestones
+    enabled: true
+    on: milestone.created
+    when: ${{ milestone.title =~ "^Release" }}
+    tasks:
+      - enabled: true
+        action: milestone.initialize
+        description: |
+          Release milestone detected: ${{milestone.title}}
+
+      - enabled: true
+        action: projectItem.create
+        title: "Release Checklist: ${{milestone.title}}"
+        description: "Auto-generated because title matched release rule"
